@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { type Card } from "../types/cards";
-import { dealNewHand } from "../utils/deck";
+import { Hand, HandType, MAX_BET, MIN_BET, type Card } from "../types/cards";
+import { calculatePayout, dealNewHand, evaluateHand } from "../utils/deck";
 
 // Tuple type for hold cards - always 5 boolean values
 type HoldCards = [boolean, boolean, boolean, boolean, boolean];
@@ -8,10 +8,12 @@ type HoldCards = [boolean, boolean, boolean, boolean, boolean];
 interface GameState {
   balance: number;
   bet: number;
-  hand: Card[];
+  hand: Hand;
   deck: Card[];
   holdCards: HoldCards;
   isActive: boolean;
+  result?: HandType;
+  creditsWon?: number;
 
   // Actions
   incrementBet: () => void;
@@ -26,13 +28,16 @@ function dealCards(state: GameState): Partial<GameState> {
     hand,
     deck: remainingCards,
     isActive: true,
-    holdCards: [false, false, false, false, false]
+    holdCards: [false, false, false, false, false],
+    result: undefined,
+    balance: state.balance - state.bet,
+    creditsWon: undefined,
   }
 }
 
 function drawCards(state: GameState): Partial<GameState> {
   // Create copies of current hand and deck
-  const newHand = [...state.hand];
+  const newHand = [...state.hand] as Hand;
   const newDeck = [...state.deck];
   
   // Replace non-held cards with new ones from deck
@@ -41,31 +46,40 @@ function drawCards(state: GameState): Partial<GameState> {
       newHand[index] = newDeck.shift()!;
     }
   });
+
+  // Calculate the payout
+  const result = evaluateHand(newHand);
+  const payout = calculatePayout(result, state.bet);
+  const newBalance = state.balance + payout;
   
   return {
     hand: newHand,
     deck: newDeck,
     holdCards: [false, false, false, false, false],
-    isActive: false
+    isActive: false,
+    result,
+    balance: newBalance,
+    creditsWon: payout,
+    bet: Math.min(newBalance, state.bet),
   };
 }
 
 export const useGameStore = create<GameState>((set) => ({
-  balance: 1000,
-  bet: 5,
-  hand: [],
+  balance: 100,
+  bet: 1,
+  hand: dealNewHand().hand,
   deck: [],
   holdCards: [false, false, false, false, false],
   isActive: false,
 
   incrementBet: () =>
     set((state) => ({
-      bet: Math.min(state.bet + 5, state.balance),
+      bet: Math.min(state.bet + 1, state.balance, MAX_BET),
     })),
 
   decrementBet: () =>
     set((state) => ({
-      bet: Math.max(5, state.bet - 5),
+      bet: state.balance <= 0 ? 0 : Math.max(MIN_BET, state.bet - 1),
     })),
 
   dealCards: () => {

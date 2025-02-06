@@ -1,5 +1,6 @@
 import CardDisplay from "./components/CardDisplay";
 import { useGameStore } from "./store/gameStore";
+import { MAX_BET, MIN_BET } from "./types/cards";
 
 function App() {
   const {
@@ -12,6 +13,8 @@ function App() {
     selectCard,
     incrementBet,
     decrementBet,
+    result,
+    creditsWon,
   } = useGameStore();
 
   return (
@@ -28,7 +31,7 @@ function App() {
         {/* Main game area */}
         <main className="space-y-8">
           {/* Cards display area */}
-          <div className="flex justify-center gap-4 min-h-[200px] bg-green-800 rounded-xl p-4">
+          <div className="flex justify-center gap-4 min-h-[200px] bg-green-800 rounded-xl p-4 relative">
             {hand.length > 0
               ? hand.map((card, index) => (
                   <CardDisplay
@@ -46,6 +49,16 @@ function App() {
                 ))}
           </div>
 
+          {/* Game status */}
+          <div className="flex justify-between items-center bg-green-800 rounded-xl p-4">
+            <div className="text-xl font-bold">
+              Hand: <span className="text-yellow-400">{result || "- - -"}</span>
+            </div>
+            <div className="text-xl">
+              Won: <span className="font-mono text-yellow-400">{creditsWon}</span>
+            </div>
+          </div>
+
           {/* Game controls */}
           <div className="flex justify-between items-center bg-green-800 rounded-xl p-4">
             <div className="space-x-4">
@@ -56,7 +69,7 @@ function App() {
                     : "bg-blue-600 hover:bg-blue-700"
                 } disabled:opacity-50`}
                 onClick={dealCards}
-                disabled={!isActive && balance < bet}
+                disabled={!isActive && (balance < bet || bet < MIN_BET)}
               >
                 {isActive ? "Draw" : "Deal"}
               </button>
@@ -66,7 +79,7 @@ function App() {
               <button
                 className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
                 onClick={decrementBet}
-                disabled={isActive || bet <= 5}
+                disabled={isActive || bet <= MIN_BET}
               >
                 -
               </button>
@@ -74,7 +87,7 @@ function App() {
               <button
                 className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
                 onClick={incrementBet}
-                disabled={isActive || bet >= balance}
+                disabled={isActive || bet >= Math.min(balance, MAX_BET)}
               >
                 +
               </button>
@@ -83,7 +96,7 @@ function App() {
 
           {/* Hand result display */}
           <div className="text-center text-2xl font-bold h-12">
-            Placeholder
+            {!isActive && "Press DEAL to start game"}
           </div>
         </main>
       </div>
