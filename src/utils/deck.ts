@@ -33,7 +33,12 @@ export function dealNewHand(): { hand: Hand; remainingCards: Card[] } {
   };
 }
 
-export function evaluateHand(hand: Hand): HandType {
+export interface HandEvaluation {
+  type: HandType;
+  winningIndices: number[];
+}
+
+export function evaluateHand(hand: Hand): HandEvaluation {
   // Sort by rank index for easier sequential checks
   const sortedHand = [...hand].sort(
     (a, b) => RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank)
@@ -63,12 +68,12 @@ export function evaluateHand(hand: Hand): HandType {
 
   // Check for royal flush
   if (isFlush && isStraight && sortedHand[4].rank === "A" && sortedHand[0].rank === "10") {
-    return HAND_TYPES.ROYAL_FLUSH;
+    return { type: HAND_TYPES.ROYAL_FLUSH, winningIndices: [0, 1, 2, 3, 4] };
   }
 
   // Check for straight flush
   if (isFlush && isStraight) {
-    return HAND_TYPES.STRAIGHT_FLUSH;
+    return { type: HAND_TYPES.STRAIGHT_FLUSH, winningIndices: [0, 1, 2, 3, 4] };
   }
 
   // Count rank frequencies
@@ -80,45 +85,65 @@ export function evaluateHand(hand: Hand): HandType {
 
   // Check for four of a kind
   if (frequencies.includes(4)) {
-    return HAND_TYPES.FOUR_OF_A_KIND;
+    const fourOfAKindRank = Array.from(rankFreq.entries()).find(([_, freq]) => freq === 4)![0];
+    const winningIndices = hand.reduce<number[]>((indices, card, index) => {
+      if (card.rank === fourOfAKindRank) indices.push(index);
+      return indices;
+    }, []);
+    return { type: HAND_TYPES.FOUR_OF_A_KIND, winningIndices };
   }
 
   // Check for full house
   if (frequencies.includes(3) && frequencies.includes(2)) {
-    return HAND_TYPES.FULL_HOUSE;
+    return { type: HAND_TYPES.FULL_HOUSE, winningIndices: [0, 1, 2, 3, 4] };
   }
 
   // Check for flush
   if (isFlush) {
-    return HAND_TYPES.FLUSH;
+    return { type: HAND_TYPES.FLUSH, winningIndices: [0, 1, 2, 3, 4] };
   }
 
   // Check for straight
   if (isStraight) {
-    return HAND_TYPES.STRAIGHT;
+    return { type: HAND_TYPES.STRAIGHT, winningIndices: [0, 1, 2, 3, 4] };
   }
 
   // Check for three of a kind
   if (frequencies.includes(3)) {
-    return HAND_TYPES.THREE_OF_A_KIND;
+    const threeOfAKindRank = Array.from(rankFreq.entries()).find(([_, freq]) => freq === 3)![0];
+    const winningIndices = hand.reduce<number[]>((indices, card, index) => {
+      if (card.rank === threeOfAKindRank) indices.push(index);
+      return indices;
+    }, []);
+    return { type: HAND_TYPES.THREE_OF_A_KIND, winningIndices };
   }
 
   // Check for two pair
   if (frequencies.filter(f => f === 2).length === 2) {
-    return HAND_TYPES.TWO_PAIR;
+    const pairRanks = Array.from(rankFreq.entries())
+      .filter(([_, freq]) => freq === 2)
+      .map(([rank]) => rank);
+    const winningIndices = hand.reduce<number[]>((indices, card, index) => {
+      if (pairRanks.includes(card.rank)) indices.push(index);
+      return indices;
+    }, []);
+    return { type: HAND_TYPES.TWO_PAIR, winningIndices };
   }
 
   // Check for jacks or better
-  const hasPair = Array.from(rankFreq.entries()).some(
-    ([rank, freq]) =>
-      freq === 2 && ["J", "Q", "K", "A"].includes(rank)
+  const pairEntry = Array.from(rankFreq.entries()).find(
+    ([rank, freq]) => freq === 2 && ["J", "Q", "K", "A"].includes(rank)
   );
   
-  if (hasPair) {
-    return HAND_TYPES.JACKS_OR_BETTER;
+  if (pairEntry) {
+    const winningIndices = hand.reduce<number[]>((indices, card, index) => {
+      if (card.rank === pairEntry[0]) indices.push(index);
+      return indices;
+    }, []);
+    return { type: HAND_TYPES.JACKS_OR_BETTER, winningIndices };
   }
 
-  return HAND_TYPES.NOTHING;
+  return { type: HAND_TYPES.NOTHING, winningIndices: [] };
 }
 
 export function calculatePayout(handType: HandType, bet: number): number {

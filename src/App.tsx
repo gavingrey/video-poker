@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import CardDisplay from "./components/CardDisplay";
 import { useGameStore } from "./store/gameStore";
 import { MAX_BET, MIN_BET } from "./types/cards";
@@ -15,7 +16,27 @@ function App() {
     decrementBet,
     result,
     creditsWon,
+    winningIndices,
   } = useGameStore();
+
+  // Handle keyboard input
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Handle number keys 1-5 for card selection
+      if (/^[1-5]$/.test(event.key)) {
+        const index = parseInt(event.key) - 1;
+        selectCard(index);
+      }
+      // Handle spacebar for deal/draw
+      if (event.code === "Space") {
+        dealCards();
+        event.preventDefault(); // Prevent page scroll
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isActive, dealCards, selectCard]);
 
   return (
     <div className="min-h-screen bg-green-900 text-white p-8">
@@ -39,6 +60,7 @@ function App() {
                     suit={card.suit}
                     rank={card.rank}
                     isSelected={holdCards[index]}
+                    isWinning={isActive && winningIndices.includes(index)}
                     isRevealed={true}
                     onClick={() => isActive && selectCard(index)}
                   />
@@ -52,10 +74,10 @@ function App() {
           {/* Game status */}
           <div className="flex justify-between items-center bg-green-800 rounded-xl p-4">
             <div className="text-xl font-bold">
-              Hand: <span className="text-yellow-400">{result || "- - -"}</span>
+              Hand: <span className={isActive ? "text-green-300/75" : "text-yellow-400"}>{result || ""}</span>
             </div>
             <div className="text-xl">
-              Won: <span className="font-mono text-yellow-400">{creditsWon}</span>
+              Won: <span className="font-mono text-yellow-400">{creditsWon || 0}</span>
             </div>
           </div>
 
@@ -96,7 +118,7 @@ function App() {
 
           {/* Hand result display */}
           <div className="text-center text-2xl font-bold h-12">
-            {!isActive && "Press DEAL to start game"}
+            {!isActive && (balance > 0 ? "Press DEAL to start game" : "No more credits")}
           </div>
         </main>
       </div>

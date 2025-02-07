@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { Hand, HandType, MAX_BET, MIN_BET, type Card } from "../types/cards";
+import type { HandEvaluation } from "../utils/deck";
 import { calculatePayout, dealNewHand, evaluateHand } from "../utils/deck";
 
 // Tuple type for hold cards - always 5 boolean values
@@ -13,6 +14,7 @@ interface GameState {
   holdCards: HoldCards;
   isActive: boolean;
   result?: HandType;
+  winningIndices: number[];
   creditsWon?: number;
 
   // Actions
@@ -24,12 +26,14 @@ interface GameState {
 
 function dealCards(state: GameState): Partial<GameState> {
   const { hand, remainingCards } = dealNewHand();
+  const { type, winningIndices } = evaluateHand(hand);
   return {
     hand,
     deck: remainingCards,
     isActive: true,
     holdCards: [false, false, false, false, false],
-    result: undefined,
+    result: type,
+    winningIndices,
     balance: state.balance - state.bet,
     creditsWon: undefined,
   }
@@ -48,8 +52,8 @@ function drawCards(state: GameState): Partial<GameState> {
   });
 
   // Calculate the payout
-  const result = evaluateHand(newHand);
-  const payout = calculatePayout(result, state.bet);
+  const handEvaluation = evaluateHand(newHand);
+  const payout = calculatePayout(handEvaluation.type, state.bet);
   const newBalance = state.balance + payout;
   
   return {
@@ -57,7 +61,8 @@ function drawCards(state: GameState): Partial<GameState> {
     deck: newDeck,
     holdCards: [false, false, false, false, false],
     isActive: false,
-    result,
+    result: handEvaluation.type,
+    winningIndices: handEvaluation.winningIndices,
     balance: newBalance,
     creditsWon: payout,
     bet: Math.min(newBalance, state.bet),
@@ -71,6 +76,7 @@ export const useGameStore = create<GameState>((set) => ({
   deck: [],
   holdCards: [false, false, false, false, false],
   isActive: false,
+  winningIndices: [],
 
   incrementBet: () =>
     set((state) => ({
