@@ -25,6 +25,10 @@ interface GameState {
 }
 
 function dealCards(state: GameState): Partial<GameState> {
+  // Do not allow dealing if balance is too low.
+  if (state.balance < MIN_BET || state.balance < state.bet) {
+    return {};
+  }
   const { hand, remainingCards } = dealNewHand();
   const { type, winningIndices } = evaluateHand(hand);
   return {
@@ -89,11 +93,16 @@ export const useGameStore = create<GameState>((set) => ({
     })),
 
   dealCards: () => {
-    set((state) => state.isActive ? drawCards(state) : dealCards(state));
+    set((state) => {
+      return state.isActive ? drawCards(state) : dealCards(state)}
+    );
   },
 
   selectCard: (index) =>
     set((state) => {
+      // Do not allow selecting cards when not active.
+      if (!state.isActive) return {};
+
       const newHoldCards = [...state.holdCards] as HoldCards;
       newHoldCards[index] = !newHoldCards[index];
       return { holdCards: newHoldCards };
