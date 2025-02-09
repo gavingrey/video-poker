@@ -23,7 +23,7 @@ const CardDisplay: FC<CardDisplayProps> = ({
     suit === "hearts" || suit === "diamonds" ? "text-red-500" : "text-black";
 
   return (
-    <div className="relative">
+    <div className="relative w-full flex justify-center">
       {isSelected && (
         <div className="absolute -top-6 left-0 right-0 text-center font-bold text-white">
           HOLD
