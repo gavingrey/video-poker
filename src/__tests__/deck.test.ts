@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SUITS, RANKS, HAND_TYPES, type Card, type Hand } from '../types/cards';
+import { HAND_TYPES, type Hand } from '../types/cards';
 import { dealNewHand, evaluateHand, calculatePayout } from '../utils/deck';
 
 describe('Deck Operations', () => {

@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { Hand, HandType, MAX_BET, MIN_BET, type Card } from "../types/cards";
-import type { HandEvaluation } from "../utils/deck";
 import { calculatePayout, dealNewHand, evaluateHand } from "../utils/deck";
 
 // Tuple type for hold cards - always 5 boolean values
