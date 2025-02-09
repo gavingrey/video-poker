@@ -39,8 +39,8 @@ function App() {
   }, [isActive, dealCards, selectCard]);
 
   return (
-    <div className="min-h-screen bg-green-900 text-white p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="h-screen w-screen bg-green-900 text-white p-4 md:p-8 overflow-hidden">
+      <div className="h-full max-w-7xl mx-auto space-y-4 md:space-y-8">
         {/* Header with title and balance */}
         <header className="flex justify-between items-center">
           <h1 className="text-4xl font-bold">Video Poker</h1>
@@ -52,7 +52,7 @@ function App() {
         {/* Main game area */}
         <main className="space-y-8">
           {/* Cards display area */}
-          <div className="flex justify-center gap-4 min-h-[200px] bg-green-800 rounded-xl p-4 relative">
+          <div className="w-full grid grid-cols-5 auto-cols-fr gap-1 sm:gap-2 min-h-[200px] bg-green-800 rounded-xl p-2 sm:p-4 relative">
             {hand.length > 0
               ? hand.map((card, index) => (
                   <CardDisplay
