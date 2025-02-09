@@ -32,7 +32,7 @@ const CardDisplay: FC<CardDisplayProps> = ({
       <div
         onClick={onClick}
         className={`
-          w-full aspect-[2/3] max-w-[18vw] min-w-[60px] rounded-lg cursor-pointer transition-all transform scale-100 hover:scale-105
+          w-full aspect-[2/3] max-w-[min(18vw,140px)] min-w-[60px] rounded-lg cursor-pointer transition-all transform scale-100 hover:scale-105
           ${isRevealed ? "bg-white" : "bg-blue-800"}
           ${isWinning ? "ring-4 ring-yellow-400" : "hover:ring-2 hover:ring-white/50"}
           flex items-center justify-center select-none

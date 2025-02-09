@@ -52,7 +52,7 @@ function App() {
         {/* Main game area */}
         <main className="space-y-8">
           {/* Cards display area */}
-          <div className="w-full grid grid-cols-5 auto-cols-fr gap-1 sm:gap-2 min-h-[200px] bg-green-800 rounded-xl p-2 sm:p-4 relative">
+          <div className="w-full grid grid-cols-5 auto-cols-fr gap-1 sm:gap-2 min-h-[120px] bg-green-800 rounded-xl p-2 sm:p-4 relative h-fit">
             {hand.length > 0
               ? hand.map((card, index) => (
                   <CardDisplay
